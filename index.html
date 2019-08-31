@@ -236,7 +236,7 @@
 			const disabled = budgetElement.disabled;
 			const value = budgetElement.getAmount();
 
-			if (!disabled) {
+			if (!disabled && (budget.amount !== value)) {
 				budget.amount = value;
 			}
 
