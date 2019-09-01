@@ -51,6 +51,9 @@
 		#budget-amount:disabled, #spend:disabled {
 			border-bottom-color: transparent;
 		}
+		#reset-remaining {
+			padding: 0;
+		}
 		#spend {
 			margin-top: .75ch;
 		}
@@ -117,6 +120,14 @@
 			from { transform: translateY(-70px) }
 			to { transform: none }
 		}
+
+		#reset-remaining.spin {
+			animation: spin .5s forwards;
+		}
+
+		@keyframes spin {
+			to { transform: rotate(1turn); }
+		}
 	</style>
 
 	<template id="set-budget-icon">
@@ -149,6 +160,17 @@
 		</svg>
 	</template>
 
+	<template id="reset">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+			<defs>
+				<marker id="arrow" markerHeight="10" markerWidth="10" refX="3" refY="2" orient="reverse-auto">
+					<path d="M1,5 l2-3 l2 3" fill="none" stroke-linecap="round" />				
+				</marker>
+			</defs>
+			<path d="M50 30 a30 30 0 1 1 -20 20" stroke-width="5" fill="none" marker-end="url(#arrow)" stroke-linecap="round"></path>
+		</svg>	
+	</template>
+
 	<template id="coins">
 		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" width="50px" height="30px">
 			<defs>
@@ -175,7 +197,10 @@
 			<button type="button" id="set-budget"></button>
 		</div>
 
-		<div>Remaining: $<span id="remaining"></span></div>
+		<div style="display: flex; align-items: center">
+			Remaining: $<span id="remaining"></span>
+			<button style="height: 80%" type="button" id="reset-remaining"></button>
+		</div>
 	
 		$<input id="spend" type="number" step="0.01" />
 		<button style="width: 50px; height: 30px" type="submit"></button>			
@@ -196,15 +221,18 @@
 		const setBudgetIcon = document.getElementById('set-budget-icon').content.cloneNode(true);
 		setBudgetElement.appendChild(setBudgetIcon);
 
-		const spendButton = document.querySelector('button[type=submit]')
-		const spendIcon = document.getElementById('coins').content.cloneNode(true);
-		spendButton.appendChild(spendIcon);
-		
 		const remainingElement = document.getElementById('remaining');
 		remainingElement.showAmount = function (amount) {
 			this.textContent = (amount / 100).toFixed(2);
 		};
+		const resetButton = document.getElementById('reset-remaining');
+		const resetIcon = document.getElementById('reset').content.cloneNode(true);
+		resetButton.appendChild(resetIcon);
 
+		const spendButton = document.querySelector('button[type=submit]')
+		const spendIcon = document.getElementById('coins').content.cloneNode(true);
+		spendButton.appendChild(spendIcon);
+		
 		const spendElement = document.getElementById('spend');
 		spendElement.getAmount = getAmount;
 
@@ -244,6 +272,18 @@
 			spendElement.disabled = disabled;
 			spendButton.disabled = disabled;
 			setBudgetElement.classList.toggle('save');
+		});
+
+		resetButton.addEventListener('click', function () {
+			budget.remaining = budget.amount;
+			this.classList.add('spin');
+
+			document.querySelector('body').addEventListener('animationend', (event) => {
+				if (event.target === this) {
+					this.classList.remove('spin');
+				}
+			}, { once: true });
+
 		});
 
 		function spendMoney() {
